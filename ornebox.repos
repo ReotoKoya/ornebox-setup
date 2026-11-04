@@ -21,10 +21,6 @@ repositories:
     type: git
     url: https://github.com/openspur/yp-spur.git
     version: master
-  src/SmolVLA:
-    type: git
-    url: https://github.com/open-rdc/SmolVLA.git
-    version: feat/heun-solver
   NavVLA:
     type: git
     url: https://github.com/open-rdc/NavVLA.git

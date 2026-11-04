@@ -5,15 +5,13 @@
 #   ./setup.sh            # 全ステップを順に実行
 #   ./setup.sh navvla     # 指定したステップだけ実行(複数可)
 #
-# ステップ: apt udev livox ypspur repos rosdep build navvla smolvla env models
+# ステップ: apt udev livox repos ypspur rosdep build navvla env models
 # どのステップも再実行して問題ないように書いてある。途中で落ちたら直してから同じステップを再実行する。
 set -eo pipefail
 
 SETUP_DIR="$(cd "$(dirname "$0")" && pwd)"
 WS="${HOME}/ornebox_ws"
-SMOLVLA_WS="${HOME}/smolvla_ws"
 NAVVLA_VENV="${HOME}/navvla_venv"
-CONDA_ROOT="${HOME}/miniforge3"
 
 log() { echo -e "\n\033[1;32m==> $*\033[0m"; }
 
@@ -65,9 +63,6 @@ step_repos() {
     log "リポジトリを ${WS} に展開"
     mkdir -p "${WS}/src"
     vcs import --skip-existing "${WS}" < "${SETUP_DIR}/ornebox.repos"
-    # lerobot サブモジュールの URL は SSH なので、鍵なしでも取れるよう https に差し替える
-    git -C "${WS}/src/SmolVLA" config submodule.lerobot.url https://github.com/open-rdc/lerobot.git
-    git -C "${WS}/src/SmolVLA" submodule update --init
 }
 
 step_ypspur() {
@@ -97,8 +92,7 @@ step_rosdep() {
 step_build() {
     log "colcon build (apt 版 ROS 2)"
     source /opt/ros/humble/setup.bash
-    # smolvla_nav は conda 版 ROS 2 で ${SMOLVLA_WS} に別ビルドする
-    (cd "${WS}" && colcon build --packages-skip smolvla_nav)
+    (cd "${WS}" && colcon build)
 }
 
 step_navvla() {
@@ -107,47 +101,19 @@ step_navvla() {
     "${NAVVLA_VENV}/bin/pip" install -r "${SETUP_DIR}/requirements-navvla.txt"
 }
 
-step_smolvla() {
-    log "SmolVLA 用 conda 環境 ros_humble"
-    if [ ! -d "${CONDA_ROOT}" ]; then
-        local installer
-        installer="$(mktemp --suffix=.sh)"
-        curl -fsSL -o "${installer}" "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh"
-        bash "${installer}" -b -p "${CONDA_ROOT}"
-        rm -f "${installer}"
-    fi
-    source "${CONDA_ROOT}/etc/profile.d/conda.sh"
-    if conda env list | grep -qE '^ros_humble\s'; then
-        mamba env update -n ros_humble -f "${SETUP_DIR}/environment-smolvla.yml"
-    else
-        mamba env create -f "${SETUP_DIR}/environment-smolvla.yml"
-    fi
-    conda activate ros_humble
-    pip install -e "${WS}/src/SmolVLA/lerobot[smolvla]"
-
-    # apt 版 ROS 2 の install ツリーを混ぜないよう、smolvla_nav は専用ワークスペースでビルドする
-    mkdir -p "${SMOLVLA_WS}/src"
-    ln -sfn "${WS}/src/SmolVLA/deployment" "${SMOLVLA_WS}/src/smolvla_nav"
-    (cd "${SMOLVLA_WS}" && colcon build --packages-select smolvla_nav --symlink-install)
-    conda deactivate
-}
-
 step_env() {
-    log "環境切り替えスクリプトを ${WS} に配置"
-    cp "${SETUP_DIR}/env/env_navvla.sh" "${SETUP_DIR}/env/env_humble.sh" "${WS}/"
+    log "環境スクリプト env_navvla.sh を ${WS} に配置"
+    cp "${SETUP_DIR}/env/env_navvla.sh" "${WS}/"
 }
 
 step_models() {
-    log "公開モデルを事前にダウンロード (現地はオフライン前提)"
+    log "CLIP の重みを事前にダウンロード (現地はオフライン前提)"
     # NavVLA: CLIP ViT-B/32 -> ~/.cache/clip/ViT-B-32.pt
     PYTHONPATH="${NAVVLA_VENV}/lib/python3.10/site-packages" \
         /usr/bin/python3 -c "import clip; clip.load('ViT-B/32', device='cpu')"
-    # SmolVLA: ベース VLM -> ~/.cache/huggingface/hub
-    "${CONDA_ROOT}/envs/ros_humble/bin/python" -c \
-        "from huggingface_hub import snapshot_download; snapshot_download('HuggingFaceTB/SmolVLM2-500M-Video-Instruct')"
 }
 
-ALL_STEPS=(apt udev livox repos ypspur rosdep build navvla smolvla env models)
+ALL_STEPS=(apt udev livox repos ypspur rosdep build navvla env models)
 steps=("$@")
 [ ${#steps[@]} -eq 0 ] && steps=("${ALL_STEPS[@]}")
 for s in "${steps[@]}"; do
