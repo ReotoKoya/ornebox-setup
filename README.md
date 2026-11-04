@@ -1,4 +1,4 @@
-# ornebox_setup
+# ornebox-setup
 
 orne-box を動かす PC の環境を一括で用意するためのリポジトリ。
 
@@ -11,7 +11,7 @@ orne-box を動かす PC の環境を一括で用意するためのリポジト�
 ## 使い方
 
 ```bash
-git clone https://github.com/Kasaiatsuki/ornebox_setup.git ~/ornebox_setup
+git clone https://github.com/Kasaiatsuki/ornebox-setup.git ~/ornebox_setup
 cd ~/ornebox_setup
 ./setup.sh
 ```
