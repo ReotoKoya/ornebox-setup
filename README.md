@@ -20,7 +20,7 @@ cd ~/ornebox_setup
 
 | ステップ | 内容 |
 |---|---|
-| `apt` | ROS 2 Humble (desktop-full)、joy、v4l2_camera、colcon、vcstool、PCL/Eigen などのビルド依存、音声案内用の espeak-ng / alsa |
+| `apt` | ROS 2 Humble (desktop-full)、joy、v4l2_camera、colcon、vcstool、PCL/Eigen などのビルド依存、pcl-tools、音声案内用の espeak-ng / alsa |
 | `udev` | icart-mini を `/dev/sensors/icart-mini` に固定し、ユーザーを `dialout` に追加 |
 | `livox` | Livox-SDK2 をビルドして `/usr/local` にインストール |
 | `repos` | `ornebox.repos` のリポジトリを `~/ornebox_ws` に clone (SmolVLA の lerobot サブモジュールも) |
@@ -86,4 +86,71 @@ ros2 launch navvla navigation.launch.py
 # SmolVLA (別ターミナル)
 source ~/ornebox_ws/env_humble.sh
 ros2 launch smolvla_nav smolvla_nav.launch.py
+```
+
+## FAST-LIO (LiDAR オドメトリ)
+
+Livox MID-360 の点群と内蔵 IMU から自己位置 `/Odometry` を出す。データ収集 (`create_data.py`) と rosbag の記録で使う。
+
+### 初回だけ: 有線 LAN の設定
+
+MID-360 は PC と有線 LAN で直結し、IP は次のように固定する。
+
+| | IP |
+|---|---|
+| MID-360 | `192.168.0.100` |
+| PC の有線 LAN | `192.168.0.5/24` (ゲートウェイなし) |
+
+```bash
+# 有線 LAN の接続名を確認して (例: "有線接続 1")、IP を固定する
+nmcli con show
+nmcli con mod "有線接続 1" ipv4.method manual ipv4.addresses 192.168.0.5/24
+nmcli con up "有線接続 1"
+ping 192.168.0.100   # 応答があれば OK
+```
+
+IP は `~/ornebox_ws/src/livox_ros_driver2/config/MID360_config.json` に書いてある。変えたら `livox_ros_driver2` を再ビルドする。
+
+### 起動
+
+LiDAR ドライバと FAST-LIO を別ターミナルで起動する。
+
+```bash
+# 1. LiDAR ドライバ: /livox/lidar と /livox/imu が出る
+source ~/ornebox_ws/env_navvla.sh
+ros2 launch livox_ros_driver2 msg_MID360_launch.py
+
+# 2. FAST-LIO: /Odometry が出る。RViz も一緒に開く
+source ~/ornebox_ws/env_navvla.sh
+ros2 launch fast_lio mapping.launch.py
+```
+
+- 起動直後は IMU の初期化のため、数秒ロボットを動かさない。
+- RViz が要らないときは `rviz:=false` を付ける。
+- 設定は `~/ornebox_ws/src/FAST_LIO_ROS2/config/mid360.yaml` (`config_file:=` で別ファイルも指定できる)。
+
+### 動作確認
+
+```bash
+ros2 topic hz /livox/imu   # 約 200 Hz
+ros2 topic hz /livox/lidar # 約 10 Hz
+ros2 topic hz /Odometry    # 約 10 Hz
+```
+
+`/livox/*` が出ない場合は、LAN の IP 設定とケーブルを確認する。`/livox/*` は出ているのに `/Odometry` が出ない場合は、FAST-LIO のターミナルにエラーが出ていないか見る。
+
+### 地図の保存
+
+`mid360.yaml` で `pcd_save_en: true` にしてあるので、FAST-LIO を Ctrl+C で止めると、走った範囲の点群が `~/ornebox_ws/src/FAST_LIO_ROS2/PCD/scans.pcd` に保存される。次に止めたときに上書きされるので、残したいものは別名でコピーしておく。
+
+```bash
+pcl_viewer ~/ornebox_ws/src/FAST_LIO_ROS2/PCD/scans.pcd   # 中身の確認 (pcl-tools)
+```
+
+### rosbag の記録 (データ収集時)
+
+```bash
+ros2 bag record -o tsukuba_$(date +%Y%m%d_%H%M%S) \
+  /livox/lidar /livox/imu /Odometry /tf /tf_static \
+  /image_raw/compressed /cmd_vel /joy /autonomous /prompt /path /debug_image
 ```

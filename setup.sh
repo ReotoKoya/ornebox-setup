@@ -31,7 +31,7 @@ step_apt() {
         ros-humble-desktop-full ros-humble-joy ros-humble-v4l2-camera \
         python3-colcon-common-extensions python3-rosdep python3-vcstool python3-venv python3-pip \
         git build-essential cmake curl \
-        libpcl-dev libeigen3-dev libapr1-dev libreadline-dev \
+        libpcl-dev libeigen3-dev libapr1-dev libreadline-dev pcl-tools \
         espeak-ng alsa-utils libasound2-plugins pulseaudio-utils
 }
 
