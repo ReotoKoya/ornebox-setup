@@ -1,0 +1,31 @@
+# vcs import で ~/ornebox_ws に展開する(setup.sh が実行する)。
+# NavVLA は src/ ではなくワークスペース直下に置く(env_navvla.sh の PYTHONPATH がこの位置を前提にしている)。
+repositories:
+  src/FAST_LIO_ROS2:
+    type: git
+    url: https://github.com/Ericsii/FAST_LIO_ROS2.git
+    version: ros2
+  src/livox_ros_driver2:
+    type: git
+    url: https://github.com/kyo0221/livox_ros_driver2.git
+    version: master
+  src/icart_driver:
+    type: git
+    url: https://github.com/kyo0221/icart_driver.git
+    version: main
+  src/ros2-controller:
+    type: git
+    url: https://github.com/kyo0221/ros2-controller.git
+    version: main
+  src/yp-spur:
+    type: git
+    url: https://github.com/openspur/yp-spur.git
+    version: master
+  src/SmolVLA:
+    type: git
+    url: https://github.com/open-rdc/SmolVLA.git
+    version: feat/heun-solver
+  NavVLA:
+    type: git
+    url: https://github.com/open-rdc/NavVLA.git
+    version: exp/tsukuba-1017

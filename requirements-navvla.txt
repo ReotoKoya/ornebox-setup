@@ -1,0 +1,9 @@
+# ~/navvla_venv (python3 -m venv --system-site-packages) に入れるもの。
+# numpy / PyYAML / scipy は apt 版(system site-packages)を使う。
+--extra-index-url https://download.pytorch.org/whl/cu124
+torch==2.6.0+cu124
+torchvision==0.21.0+cu124
+clip @ git+https://github.com/openai/CLIP.git@d05afc436d78f1c48dc0dbf8e5980a9d471f35f6
+efficientnet_pytorch==0.7.1
+ftfy==6.3.1
+regex==2026.9.29
