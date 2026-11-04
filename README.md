@@ -80,6 +80,8 @@ apt にないので、ソースからビルドしてシステムに入れる。
 
 `ornebox.repos` に書いたものを clone して colcon build する。
 
+icart_driver・livox_ros_driver2・ros2-controller・yp-spur は、orne-box 用の変更 (カメラ、MID-360 の IP、横断歩道の /cross など) を入れた [Kasaiatsuki の fork](https://github.com/Kasaiatsuki?tab=repositories) を使う。
+
 | リポジトリ | 役割 |
 |---|---|
 | `icart_driver` | 車体のドライバ。yp-spur とカメラをまとめて起動する |

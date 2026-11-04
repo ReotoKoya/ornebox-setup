@@ -1,4 +1,5 @@
 # vcs import で ~/ornebox_ws に展開する(setup.sh が実行する)。
+# icart_driver・livox_ros_driver2・ros2-controller・yp-spur は orne-box 用の変更を入れた Kasaiatsuki の fork。
 # NavVLA は src/ ではなくワークスペース直下に置く(env_navvla.sh の PYTHONPATH がこの位置を前提にしている)。
 repositories:
   src/FAST_LIO_ROS2:
@@ -7,19 +8,19 @@ repositories:
     version: ros2
   src/livox_ros_driver2:
     type: git
-    url: https://github.com/kyo0221/livox_ros_driver2.git
+    url: https://github.com/Kasaiatsuki/livox_ros_driver2.git
     version: master
   src/icart_driver:
     type: git
-    url: https://github.com/kyo0221/icart_driver.git
+    url: https://github.com/Kasaiatsuki/icart_driver.git
     version: main
   src/ros2-controller:
     type: git
-    url: https://github.com/kyo0221/ros2-controller.git
+    url: https://github.com/Kasaiatsuki/ros2-controller.git
     version: main
   src/yp-spur:
     type: git
-    url: https://github.com/openspur/yp-spur.git
+    url: https://github.com/Kasaiatsuki/yp-spur.git
     version: master
   NavVLA:
     type: git

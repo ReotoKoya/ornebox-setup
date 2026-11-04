@@ -63,6 +63,10 @@ step_repos() {
     log "リポジトリを ${WS} に展開"
     mkdir -p "${WS}/src"
     vcs import --skip-existing "${WS}" < "${SETUP_DIR}/ornebox.repos"
+    # livox_ros_driver2 は ROS1/ROS2 両対応で package.xml を git に入れていない。
+    # 付属の build.sh と同じく ROS2 用をコピーする(無いと rosdep にもビルドにも見えない)
+    local livox="${WS}/src/livox_ros_driver2"
+    [ -f "${livox}/package.xml" ] || cp "${livox}/package_ROS2.xml" "${livox}/package.xml"
 }
 
 step_ypspur() {
@@ -92,7 +96,8 @@ step_rosdep() {
 step_build() {
     log "colcon build (apt 版 ROS 2)"
     source /opt/ros/humble/setup.bash
-    (cd "${WS}" && colcon build)
+    # ROS_EDITION / HUMBLE_ROS は livox_ros_driver2 の CMakeLists.txt が見る (build.sh と同じ値)
+    (cd "${WS}" && colcon build --cmake-args -DROS_EDITION=ROS2 -DHUMBLE_ROS=humble)
 }
 
 step_navvla() {
