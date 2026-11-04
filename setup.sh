@@ -62,7 +62,8 @@ step_livox() {
 step_repos() {
     log "リポジトリを ${WS} に展開"
     mkdir -p "${WS}/src"
-    vcs import --skip-existing "${WS}" < "${SETUP_DIR}/ornebox.repos"
+    # FAST_LIO_ROS2 の ikd-Tree と NavVLA の OmniVLA はサブモジュールなので --recursive で一緒に取る
+    vcs import --recursive --skip-existing "${WS}" < "${SETUP_DIR}/ornebox.repos"
     # livox_ros_driver2 は ROS1/ROS2 両対応で package.xml を git に入れていない。
     # 付属の build.sh と同じく ROS2 用をコピーする(無いと rosdep にもビルドにも見えない)
     local livox="${WS}/src/livox_ros_driver2"
